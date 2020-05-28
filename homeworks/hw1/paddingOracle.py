@@ -7,32 +7,73 @@ from connector import Connector
 def splitBlocks(seq, length):
     return [seq[i: i + length] for i in range(0, len(seq), length)]
 
+def decodeMessage(cp):
+    text = ''
 
-def xorByte(block: bytearray, index: int, val: int) -> bytearray:
-    byte = bytearray()
-    count = 0
-    for b in block:
-        if count == index:
-            b = val
-        byte.append(b)
-        count += 1
-    return byte
+    for count in reversed(range(0, len(cp))):
+        xors = []
+        for c in reversed(range(0, 8)):
+            for i in range(0, 256):
+                testcp: bytearray = []
+                testcp.extend(cp[count])
+                if c == 7:
+                    testcp[blockSize - 1] = testcp[blockSize - 1] ^ i
+                if c == 6:
+                    testcp[blockSize - 1] = testcp[blockSize - 1] ^ xors[0] ^ 1
+                    testcp[blockSize - 2] = testcp[blockSize - 2] ^ i ^ 1
+                if c == 5:
+                    testcp[blockSize - 1] = testcp[blockSize - 1] ^ xors[0] ^ 2
+                    testcp[blockSize - 2] = testcp[blockSize - 2] ^ xors[1] ^ 2
+                    testcp[blockSize - 3] = testcp[blockSize - 3] ^ i ^ 2
+                if c == 4:
+                    testcp[blockSize - 1] = testcp[blockSize - 1] ^ xors[0] ^ 3
+                    testcp[blockSize - 2] = testcp[blockSize - 2] ^ xors[1] ^ 3
+                    testcp[blockSize - 3] = testcp[blockSize - 3] ^ xors[2] ^ 3
+                    testcp[blockSize - 4] = testcp[blockSize - 4] ^ i ^ 3
+                if c == 3:
+                    testcp[blockSize - 1] = testcp[blockSize - 1] ^ xors[0] ^ 4
+                    testcp[blockSize - 2] = testcp[blockSize - 2] ^ xors[1] ^ 4
+                    testcp[blockSize - 3] = testcp[blockSize - 3] ^ xors[2] ^ 4
+                    testcp[blockSize - 4] = testcp[blockSize - 4] ^ xors[3] ^ 4
+                    testcp[blockSize - 5] = testcp[blockSize - 5] ^ i ^ 4
+                if c == 2:
+                    testcp[blockSize - 1] = testcp[blockSize - 1] ^ xors[0] ^ 5
+                    testcp[blockSize - 2] = testcp[blockSize - 2] ^ xors[1] ^ 5
+                    testcp[blockSize - 3] = testcp[blockSize - 3] ^ xors[2] ^ 5
+                    testcp[blockSize - 4] = testcp[blockSize - 4] ^ xors[3] ^ 5
+                    testcp[blockSize - 5] = testcp[blockSize - 5] ^ xors[4] ^ 5
+                    testcp[blockSize - 6] = testcp[blockSize - 6] ^ i ^ 5
+                if c == 1:
+                    testcp[blockSize - 1] = testcp[blockSize - 1] ^ xors[0] ^ 6
+                    testcp[blockSize - 2] = testcp[blockSize - 2] ^ xors[1] ^ 6
+                    testcp[blockSize - 3] = testcp[blockSize - 3] ^ xors[2] ^ 6
+                    testcp[blockSize - 4] = testcp[blockSize - 4] ^ xors[3] ^ 6
+                    testcp[blockSize - 5] = testcp[blockSize - 5] ^ xors[4] ^ 6
+                    testcp[blockSize - 6] = testcp[blockSize - 6] ^ xors[5] ^ 6
+                    testcp[blockSize - 7] = testcp[blockSize - 7] ^ i ^ 6
+                if c == 0:
+                    testcp[blockSize - 1] = testcp[blockSize - 1] ^ xors[0] ^ 7
+                    testcp[blockSize - 2] = testcp[blockSize - 2] ^ xors[1] ^ 7
+                    testcp[blockSize - 3] = testcp[blockSize - 3] ^ xors[2] ^ 7
+                    testcp[blockSize - 4] = testcp[blockSize - 4] ^ xors[3] ^ 7
+                    testcp[blockSize - 5] = testcp[blockSize - 5] ^ xors[4] ^ 7
+                    testcp[blockSize - 6] = testcp[blockSize - 6] ^ xors[5] ^ 7
+                    testcp[blockSize - 7] = testcp[blockSize - 7] ^ xors[6] ^ 7
+                    testcp[blockSize - 8] = testcp[blockSize - 8] ^ i ^ 7
 
+                challenge = ''.join(format(x, '02x') for x in testcp)
 
-def setByte(block: bytearray, index: int, val: int) -> bytearray:
-    byte = bytearray()
-    count = 0
-    for b in block:
-        if count == index:
-            b = val
-        byte.append(b)
-        count += 1
-    return byte
+                attempt: requests.Response = con.attemptChallenge(
+                    {'data':  challenge, 'key': key})
 
+                result = json.loads(attempt.text)
 
-def stringify(arr):
-    return ''.join(map(lambda x: str(x), arr))
-
+                if result['error'] == 'tag':
+                    xors.append(i)
+                    if i >= 0x20 and i <= 0x7A:
+                        text = chr(i) + text
+                    break
+    return text
 
 con: Connector = Connector('http://localhost:3000',
                            '/getChallenge', '/attemptChallenge')
@@ -40,51 +81,10 @@ con: Connector = Connector('http://localhost:3000',
 res: requests.Response = con.getChallenge()
 res = json.loads(res.text)
 
-data: str = res['data']
+data: bytearray = bytearray.fromhex(res['data'])
 key: str = res['key']
 
-paddingCount = 0
 blockSize = 8
-blockLength = blockSize * 2
-text = []
-cp = splitBlocks(data, blockLength)
-prevxor = 0x01
-xorval = 0x01
-bitschanged = 0
+cipherBlocks = splitBlocks(data, blockSize)
 
-# go over all blocks from last to start
-# the count block you split into 8 parts
-# c is the number of the part
-
-# take 2 blocks, count count-1
-# the count-1[c] byte you xor with i in range 1,255
-# we send the count-1 block + count block
-# until: you recieve none
-# the i is the text thats needed.
-
-for count in reversed(range(0, len(cp))):
-    xors = []
-    for c in reversed(range(0, 8)):
-        for i in range(0, 256):
-            testcp = copy.deepcopy(cp)
-            b = xorByte(bytes.fromhex(testcp[count-1]), c, i)
-            expCount = 0
-            expXor = 0x01
-            for i in reversed(range(len(testcp)-bitschanged, len(testcp))):
-                b = setByte(b, c+bitschanged, xorval ^ xors[expCount])
-                expCount += 1
-                expXor += 1
-            testcp[count-1] = b.hex()
-
-            attempt: requests.Response = con.attemptChallenge(
-                {'data': stringify(testcp), 'key': key})
-            result = json.loads(attempt.text)
-            print(result['error'])
-            if result['error'] != 'pad' and result['error'] != 'padding':
-                xors.append(xorval ^ i)
-                text.append(xorval ^ i ^ bytes.fromhex(testcp[count])[c])
-                xorval += 1
-                bitschanged += 1
-                break
-    print(text)
-    break
+print(decodeMessage(cipherBlocks))

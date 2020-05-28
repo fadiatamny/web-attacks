@@ -14,4 +14,4 @@ class Connector(object):
 
     def attemptChallenge(self, data: dict) -> requests.Response:
         headers = {'content-type': 'application/json'}
-        return requests.post(url=f'{self.__endpoint}{self.__postPath}', headers=headers, data=json.dumps(data))
+        return requests.post(url=f'{self.__endpoint}{self.__postPath}', headers=headers, data=json.dumps(data), timeout=None)

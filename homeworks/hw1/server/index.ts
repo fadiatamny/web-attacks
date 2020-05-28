@@ -16,7 +16,6 @@ app.get("/getChallenge", async (req, res) => {
 });
 
 app.post("/attemptChallenge", bodyParser.json(), async (req, res) => {
-    console.log('here');
     let chlng = req.body;
     let key = Buffer.from(chlng.key, 'hex');
     let iv = Buffer.alloc(8, 0);
@@ -70,9 +69,9 @@ function naiveCBC_MACEncrypt(data: Buffer, key:Buffer, iv: Buffer, dec: boolean)
 
 async function enc()
 {
-    // let req = JSON.parse (await request.get('https://baconipsum.com/api/?type=all-meat&sentences=1&start-with-lorem=1'));
-    let req = "Testing if the padding even fucking works."    
+    let req = JSON.parse (await request.get('https://baconipsum.com/api/?type=all-meat&sentences=1&start-with-lorem=1'));
     let byteArray = Buffer.from(req[0]);
+    console.log('byteArray = ', byteArray)
     let key = crypto.randomBytes(8);
     let iv = Buffer.alloc(8,0);
 
@@ -89,10 +88,6 @@ function dec(data: Buffer, key: Buffer, iv: Buffer) : object
 
     if (paddingVal > 7)
         return { error: 'padding' };
-
-
-    // if (padding.length == 0)
-    //     return { error: 'padding' };
 
     for (let i = 0; i < padding.length - 1; i++)
         if (padding[i] != padding[i + 1])
@@ -121,4 +116,4 @@ function dec(data: Buffer, key: Buffer, iv: Buffer) : object
     
 }
 
-app.listen(3000, () => console.log('server running'));app.listen(3000, () => console.log('server running'));
+app.listen(3000, () => console.log('server running'));
