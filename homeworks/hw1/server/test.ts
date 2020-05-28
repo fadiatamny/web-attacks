@@ -31,82 +31,80 @@ const getChallenge = async (): Promise<void> => {
     while (!done) {
         let cipherHex: string = ''
         let byte: number = 7;
-        let index: Array<number> = [] // This array holds the current block decrypted bytes
+        let xors: Array<number> = []
         for (let i = 0; i < 256; ++i) {
-            let toDecrypt: Buffer = Buffer.alloc(BLOCK_SIZE, 0) // Allocation BLOCK_SIZE (each iteration grows by 8)
-            buffer.copy(toDecrypt) // copy BLOCK_SIZE bytes to toDecrypt
+            let cipherblock: Buffer = Buffer.alloc(BLOCK_SIZE, 0)
+            buffer.copy(cipherblock)
 
             switch (byte) {
                 case 7:
-                    toDecrypt[BLOCK_SIZE - 1] = toDecrypt[BLOCK_SIZE - 1] ^ i
+                    cipherblock[BLOCK_SIZE - 1] = cipherblock[BLOCK_SIZE - 1] ^ i
                     break
                 case 6:
-                    toDecrypt[BLOCK_SIZE - 1] = toDecrypt[BLOCK_SIZE - 1] ^ (index[0] ^ 1)
-                    toDecrypt[BLOCK_SIZE - 2] = toDecrypt[BLOCK_SIZE - 2] ^ (i ^ 1)
+                    cipherblock[BLOCK_SIZE - 1] = cipherblock[BLOCK_SIZE - 1] ^ (xors[0] ^ 1)
+                    cipherblock[BLOCK_SIZE - 2] = cipherblock[BLOCK_SIZE - 2] ^ (i ^ 1)
                     break
                 case 5:
-                    toDecrypt[BLOCK_SIZE - 1] = toDecrypt[BLOCK_SIZE - 1] ^ (index[0] ^ 2)
-                    toDecrypt[BLOCK_SIZE - 2] = toDecrypt[BLOCK_SIZE - 2] ^ (index[1] ^ 2)
-                    toDecrypt[BLOCK_SIZE - 3] = toDecrypt[BLOCK_SIZE - 3] ^ (i ^ 2)
+                    cipherblock[BLOCK_SIZE - 1] = cipherblock[BLOCK_SIZE - 1] ^ (xors[0] ^ 2)
+                    cipherblock[BLOCK_SIZE - 2] = cipherblock[BLOCK_SIZE - 2] ^ (xors[1] ^ 2)
+                    cipherblock[BLOCK_SIZE - 3] = cipherblock[BLOCK_SIZE - 3] ^ (i ^ 2)
                     break
                 case 4:
-                    toDecrypt[BLOCK_SIZE - 1] = toDecrypt[BLOCK_SIZE - 1] ^ (index[0] ^ 3)
-                    toDecrypt[BLOCK_SIZE - 2] = toDecrypt[BLOCK_SIZE - 2] ^ (index[1] ^ 3)
-                    toDecrypt[BLOCK_SIZE - 3] = toDecrypt[BLOCK_SIZE - 3] ^ (index[2] ^ 3)
-                    toDecrypt[BLOCK_SIZE - 4] = toDecrypt[BLOCK_SIZE - 4] ^ (i ^ 3)
+                    cipherblock[BLOCK_SIZE - 1] = cipherblock[BLOCK_SIZE - 1] ^ (xors[0] ^ 3)
+                    cipherblock[BLOCK_SIZE - 2] = cipherblock[BLOCK_SIZE - 2] ^ (xors[1] ^ 3)
+                    cipherblock[BLOCK_SIZE - 3] = cipherblock[BLOCK_SIZE - 3] ^ (xors[2] ^ 3)
+                    cipherblock[BLOCK_SIZE - 4] = cipherblock[BLOCK_SIZE - 4] ^ (i ^ 3)
                     break
                 case 3:
-                    toDecrypt[BLOCK_SIZE - 1] = toDecrypt[BLOCK_SIZE - 1] ^ (index[0] ^ 4)
-                    toDecrypt[BLOCK_SIZE - 2] = toDecrypt[BLOCK_SIZE - 2] ^ (index[1] ^ 4)
-                    toDecrypt[BLOCK_SIZE - 3] = toDecrypt[BLOCK_SIZE - 3] ^ (index[2] ^ 4)
-                    toDecrypt[BLOCK_SIZE - 4] = toDecrypt[BLOCK_SIZE - 4] ^ (index[3] ^ 4)
-                    toDecrypt[BLOCK_SIZE - 5] = toDecrypt[BLOCK_SIZE - 5] ^ (i ^ 4)
+                    cipherblock[BLOCK_SIZE - 1] = cipherblock[BLOCK_SIZE - 1] ^ (xors[0] ^ 4)
+                    cipherblock[BLOCK_SIZE - 2] = cipherblock[BLOCK_SIZE - 2] ^ (xors[1] ^ 4)
+                    cipherblock[BLOCK_SIZE - 3] = cipherblock[BLOCK_SIZE - 3] ^ (xors[2] ^ 4)
+                    cipherblock[BLOCK_SIZE - 4] = cipherblock[BLOCK_SIZE - 4] ^ (xors[3] ^ 4)
+                    cipherblock[BLOCK_SIZE - 5] = cipherblock[BLOCK_SIZE - 5] ^ (i ^ 4)
                     break
                 case 2:
-                    toDecrypt[BLOCK_SIZE - 1] = toDecrypt[BLOCK_SIZE - 1] ^ (index[0] ^ 5)
-                    toDecrypt[BLOCK_SIZE - 2] = toDecrypt[BLOCK_SIZE - 2] ^ (index[1] ^ 5)
-                    toDecrypt[BLOCK_SIZE - 3] = toDecrypt[BLOCK_SIZE - 3] ^ (index[2] ^ 5)
-                    toDecrypt[BLOCK_SIZE - 4] = toDecrypt[BLOCK_SIZE - 4] ^ (index[3] ^ 5)
-                    toDecrypt[BLOCK_SIZE - 5] = toDecrypt[BLOCK_SIZE - 5] ^ (index[4] ^ 5)
-                    toDecrypt[BLOCK_SIZE - 6] = toDecrypt[BLOCK_SIZE - 6] ^ (i ^ 5)
+                    cipherblock[BLOCK_SIZE - 1] = cipherblock[BLOCK_SIZE - 1] ^ (xors[0] ^ 5)
+                    cipherblock[BLOCK_SIZE - 2] = cipherblock[BLOCK_SIZE - 2] ^ (xors[1] ^ 5)
+                    cipherblock[BLOCK_SIZE - 3] = cipherblock[BLOCK_SIZE - 3] ^ (xors[2] ^ 5)
+                    cipherblock[BLOCK_SIZE - 4] = cipherblock[BLOCK_SIZE - 4] ^ (xors[3] ^ 5)
+                    cipherblock[BLOCK_SIZE - 5] = cipherblock[BLOCK_SIZE - 5] ^ (xors[4] ^ 5)
+                    cipherblock[BLOCK_SIZE - 6] = cipherblock[BLOCK_SIZE - 6] ^ (i ^ 5)
                     break
                 case 1:
-                    toDecrypt[BLOCK_SIZE - 1] = toDecrypt[BLOCK_SIZE - 1] ^ (index[0] ^ 6)
-                    toDecrypt[BLOCK_SIZE - 2] = toDecrypt[BLOCK_SIZE - 2] ^ (index[1] ^ 6)
-                    toDecrypt[BLOCK_SIZE - 3] = toDecrypt[BLOCK_SIZE - 3] ^ (index[2] ^ 6)
-                    toDecrypt[BLOCK_SIZE - 4] = toDecrypt[BLOCK_SIZE - 4] ^ (index[3] ^ 6)
-                    toDecrypt[BLOCK_SIZE - 5] = toDecrypt[BLOCK_SIZE - 5] ^ (index[4] ^ 6)
-                    toDecrypt[BLOCK_SIZE - 6] = toDecrypt[BLOCK_SIZE - 6] ^ (index[5] ^ 6)
-                    toDecrypt[BLOCK_SIZE - 7] = toDecrypt[BLOCK_SIZE - 7] ^ (i ^ 6)
+                    cipherblock[BLOCK_SIZE - 1] = cipherblock[BLOCK_SIZE - 1] ^ (xors[0] ^ 6)
+                    cipherblock[BLOCK_SIZE - 2] = cipherblock[BLOCK_SIZE - 2] ^ (xors[1] ^ 6)
+                    cipherblock[BLOCK_SIZE - 3] = cipherblock[BLOCK_SIZE - 3] ^ (xors[2] ^ 6)
+                    cipherblock[BLOCK_SIZE - 4] = cipherblock[BLOCK_SIZE - 4] ^ (xors[3] ^ 6)
+                    cipherblock[BLOCK_SIZE - 5] = cipherblock[BLOCK_SIZE - 5] ^ (xors[4] ^ 6)
+                    cipherblock[BLOCK_SIZE - 6] = cipherblock[BLOCK_SIZE - 6] ^ (xors[5] ^ 6)
+                    cipherblock[BLOCK_SIZE - 7] = cipherblock[BLOCK_SIZE - 7] ^ (i ^ 6)
                     break
                 case 0:
-                    toDecrypt[BLOCK_SIZE - 1] = toDecrypt[BLOCK_SIZE - 1] ^ (index[0] ^ 7)
-                    toDecrypt[BLOCK_SIZE - 2] = toDecrypt[BLOCK_SIZE - 2] ^ (index[1] ^ 7)
-                    toDecrypt[BLOCK_SIZE - 3] = toDecrypt[BLOCK_SIZE - 3] ^ (index[2] ^ 7)
-                    toDecrypt[BLOCK_SIZE - 4] = toDecrypt[BLOCK_SIZE - 4] ^ (index[3] ^ 7)
-                    toDecrypt[BLOCK_SIZE - 5] = toDecrypt[BLOCK_SIZE - 5] ^ (index[4] ^ 7)
-                    toDecrypt[BLOCK_SIZE - 6] = toDecrypt[BLOCK_SIZE - 6] ^ (index[5] ^ 7)
-                    toDecrypt[BLOCK_SIZE - 7] = toDecrypt[BLOCK_SIZE - 7] ^ (index[6] ^ 7)
-                    toDecrypt[BLOCK_SIZE - 8] = toDecrypt[BLOCK_SIZE - 8] ^ (i ^ 7)
+                    cipherblock[BLOCK_SIZE - 1] = cipherblock[BLOCK_SIZE - 1] ^ (xors[0] ^ 7)
+                    cipherblock[BLOCK_SIZE - 2] = cipherblock[BLOCK_SIZE - 2] ^ (xors[1] ^ 7)
+                    cipherblock[BLOCK_SIZE - 3] = cipherblock[BLOCK_SIZE - 3] ^ (xors[2] ^ 7)
+                    cipherblock[BLOCK_SIZE - 4] = cipherblock[BLOCK_SIZE - 4] ^ (xors[3] ^ 7)
+                    cipherblock[BLOCK_SIZE - 5] = cipherblock[BLOCK_SIZE - 5] ^ (xors[4] ^ 7)
+                    cipherblock[BLOCK_SIZE - 6] = cipherblock[BLOCK_SIZE - 6] ^ (xors[5] ^ 7)
+                    cipherblock[BLOCK_SIZE - 7] = cipherblock[BLOCK_SIZE - 7] ^ (xors[6] ^ 7)
+                    cipherblock[BLOCK_SIZE - 8] = cipherblock[BLOCK_SIZE - 8] ^ (i ^ 7)
                     break
                 default:
                     break
             }
-            let attempt: any = await fetch("http://localhost:3000/attemptChallenge", { body: JSON.stringify({ data: toDecrypt.toString('hex'), key: body.key }), method: "POST", headers: { "Content-Type": "application/json" } })
+            let attempt: any = await fetch("http://localhost:3000/attemptChallenge", { body: JSON.stringify({ data: cipherblock.toString('hex'), key: body.key }), method: "POST", headers: { "Content-Type": "application/json" } })
             let result: any = await attempt.json()
             if (result.error == 'tag') {
                 if ((i.toString(16) < '20' || i.toString(16) > '7A')) {
                     done = true
                 }
 
-                index.push(i)
+                xors.push(i)
                 cipherHex += i.toString(16)
                 i = 0
                 byte--;
             }
         }
-
-        //strFixed appends the reversed string(which is the correct one)
         text += reverse(decrypt(cipherHex))
         BLOCK_SIZE += 8
         console.log(text);
