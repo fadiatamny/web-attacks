@@ -12,6 +12,6 @@ class Connector(object):
     def getChallenge(self) -> requests.Response:
         return requests.get(url=f'{self.__endpoint}{self.__getPath}')
 
-    def attemptChallenge(self, data: dict) -> requests.Response:
+    async def attemptChallenge(self, data: dict) -> requests.Response:
         headers = {'content-type': 'application/json'}
         return requests.post(url=f'{self.__endpoint}{self.__postPath}', headers=headers, data=json.dumps(data), timeout=None)

@@ -38,7 +38,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var crypto = require("crypto");
 var express = require("express");
-var request = require("request-promise-native");
 var bodyParser = require("body-parser");
 var MersenneTwister = require('mersenne-twister');
 var app = express();
@@ -98,20 +97,14 @@ function naiveCBC_MACEncrypt(data, key, iv, dec) {
 }
 function enc() {
     return __awaiter(this, void 0, void 0, function () {
-        var req, _a, _b, byteArray, key, iv;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
-                case 0:
-                    _b = (_a = JSON).parse;
-                    return [4 /*yield*/, request.get('https://baconipsum.com/api/?type=all-meat&sentences=1&start-with-lorem=1')];
-                case 1:
-                    req = _b.apply(_a, [_c.sent()]);
-                    byteArray = Buffer.from(req[0]);
-                    console.log('byteArray = ', byteArray);
-                    key = crypto.randomBytes(8);
-                    iv = Buffer.alloc(8, 0);
-                    return [2 /*return*/, [key, iv, naiveCBC_MACEncrypt(prepare(byteArray), key, iv, false)]];
-            }
+        var req, byteArray, key, iv;
+        return __generator(this, function (_a) {
+            req = ["THIS IS A SMALL TEST"];
+            byteArray = Buffer.from(req[0]);
+            console.log('byteArray = ', byteArray);
+            key = crypto.randomBytes(8);
+            iv = Buffer.alloc(8, 0);
+            return [2 /*return*/, [key, iv, naiveCBC_MACEncrypt(prepare(byteArray), key, iv, false)]];
         });
     });
 }

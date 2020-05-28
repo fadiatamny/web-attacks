@@ -37,8 +37,24 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var node_fetch_1 = require("node-fetch");
+var reverse = function (str) {
+    var reversed = '';
+    for (var j = str.length - 1; j >= 0; j--) {
+        if (str[j] != '.')
+            reversed += str[j];
+    }
+    return reversed;
+};
+var decrypt = function (str) {
+    var decrypted = '';
+    //convert decrypted (which is all values in hex) to a string
+    for (var n = 0; n < str.length; n += 2) {
+        decrypted += String.fromCharCode(parseInt(str.substr(n, 2), 16));
+    }
+    return decrypted;
+};
 var getChallenge = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var res, body, BLOCK_SIZE, decrypted, strFixed, buf, isData, counter, byte, index, i, toDecrypt, chlng, chlng_res, chlng_res_body, str, n, newString, j;
+    var res, body, text, buf, done, counter, BLOCK_SIZE, cipherHex, byte, index, i, toDecrypt, chlng, chlng_res, chlng_res_body;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, node_fetch_1["default"]("http://localhost:3000/getChallenge")];
@@ -47,20 +63,15 @@ var getChallenge = function () { return __awaiter(void 0, void 0, void 0, functi
                 return [4 /*yield*/, res.json()];
             case 2:
                 body = _a.sent();
-                BLOCK_SIZE = 8 //Init BLOCK_SIZE
-                ;
-                decrypted = '' // Data which been decrypted
-                ;
-                strFixed = '' // Data needs to be reversed because we decrypt from last to begin
-                ;
-                buf = Buffer.from(body.data, 'hex') // Initial buf with body.data which holds of course the data
-                ;
-                isData = 1 //flag
-                ;
+                text = '';
+                buf = Buffer.from(body.data, 'hex');
+                done = 0;
                 counter = 0;
+                BLOCK_SIZE = 8;
                 _a.label = 3;
             case 3:
-                if (!isData) return [3 /*break*/, 9];
+                if (!!done) return [3 /*break*/, 9];
+                cipherHex = '';
                 byte = 7;
                 index = [] // This array holds the current block decrypted bytes
                 ;
@@ -135,14 +146,11 @@ var getChallenge = function () { return __awaiter(void 0, void 0, void 0, functi
             case 6:
                 chlng_res_body = _a.sent();
                 if (chlng_res_body.error == 'tag') {
-                    index.push(i);
-                    /*Check if the value we get is a char, space, or number */
-                    if ((i.toString(16) >= '20' && i.toString(16) <= '7A')) {
-                        console.log("i.toString():" + i.toString(16));
-                        decrypted += i.toString(16);
+                    if ((i.toString(16) < '20' || i.toString(16) > '7A')) {
+                        done = 1;
                     }
-                    else
-                        isData = 0; // else we need to break from while
+                    index.push(i);
+                    cipherHex += i.toString(16);
                     i = 0;
                     byte--;
                 }
@@ -151,24 +159,13 @@ var getChallenge = function () { return __awaiter(void 0, void 0, void 0, functi
                 ++i;
                 return [3 /*break*/, 4];
             case 8:
-                str = '';
-                //convert decrypted (which is all values in hex) to a string
-                for (n = 0; n < decrypted.length; n += 2) {
-                    str += String.fromCharCode(parseInt(decrypted.substr(n, 2), 16));
-                }
-                newString = "";
-                for (j = str.length - 1; j >= 0; j--) {
-                    if (str[j] != '.')
-                        newString += str[j];
-                }
                 //strFixed appends the reversed string(which is the correct one)
-                strFixed += newString;
-                console.log("Block no." + counter++ + " - " + strFixed);
-                decrypted = '';
+                text += reverse(decrypt(cipherHex));
                 BLOCK_SIZE += 8;
+                console.log(text);
                 return [3 /*break*/, 3];
             case 9:
-                console.log("\nDecrypted data\n>" + strFixed);
+                console.log("\nDecrypted data\n>" + text.slice(0, text.length - 3));
                 return [2 /*return*/];
         }
     });

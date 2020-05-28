@@ -2,12 +2,13 @@ import requests
 import json
 import copy
 from connector import Connector
-
+import asyncio
 
 def splitBlocks(seq, length):
     return [seq[i: i + length] for i in range(0, len(seq), length)]
 
-def decodeMessage(cp):
+
+async def decodeMessage(cp, blockSize):
     text = ''
 
     for count in reversed(range(0, len(cp))):
@@ -63,7 +64,7 @@ def decodeMessage(cp):
 
                 challenge = ''.join(format(x, '02x') for x in testcp)
 
-                attempt: requests.Response = con.attemptChallenge(
+                attempt = await con.attemptChallenge(
                     {'data':  challenge, 'key': key})
 
                 result = json.loads(attempt.text)
@@ -73,13 +74,13 @@ def decodeMessage(cp):
                     if i >= 0x20 and i <= 0x7A:
                         text = chr(i) + text
                     break
-    return text
+        print(text)
 
 con: Connector = Connector('http://localhost:3000',
                            '/getChallenge', '/attemptChallenge')
 
 res: requests.Response = con.getChallenge()
-res = json.loads(res.text)
+res: str = json.loads(res.text)
 
 data: bytearray = bytearray.fromhex(res['data'])
 key: str = res['key']
@@ -87,4 +88,6 @@ key: str = res['key']
 blockSize = 8
 cipherBlocks = splitBlocks(data, blockSize)
 
-print(decodeMessage(cipherBlocks))
+loop = asyncio.get_event_loop()
+loop.run_until_complete(decodeMessage(cipherBlocks,blockSize))
+loop.close()
