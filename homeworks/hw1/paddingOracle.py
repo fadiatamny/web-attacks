@@ -2,17 +2,18 @@ import requests
 import json
 import copy
 from connector import Connector
-import asyncio
 
-def splitBlocks(seq, length):
+
+def splitBlocks(seq: bytearray, length: int) -> list:
     return [seq[i: i + length] for i in range(0, len(seq), length)]
 
 
-async def decodeMessage(cp, blockSize):
-    text = ''
+def decodeMessage(cp: list, blockSize: int) -> str:
+    decryptedMessage: list = []
+    for count in range(0, len(cp)):
+        xors: list = []
+        blockText: str = ''
 
-    for count in reversed(range(0, len(cp))):
-        xors = []
         for c in reversed(range(0, 8)):
             for i in range(0, 256):
                 testcp: bytearray = []
@@ -64,19 +65,29 @@ async def decodeMessage(cp, blockSize):
 
                 challenge = ''.join(format(x, '02x') for x in testcp)
 
-                attempt = await con.attemptChallenge(
+                if count != 0:
+                    tmpText: str = ''
+                    for block in range(0, count):
+                        tmpText += ''.join(format(x, '02x') for x in cp[block])
+                    challenge = tmpText + challenge
+
+                attempt = con.attemptChallenge(
                     {'data':  challenge, 'key': key})
 
                 result = json.loads(attempt.text)
 
                 if result['error'] == 'tag':
                     xors.append(i)
-                    if i >= 0x20 and i <= 0x7A:
-                        text = chr(i) + text
+                    blockText = chr(i) + blockText
                     break
-        print(text)
 
-con: Connector = Connector('http://localhost:3000',
+        decryptedMessage.append(blockText)
+        print('Decryption progress until now: {0}'.format(''.join(decryptedMessage)))
+
+    return decryptedMessage
+
+
+con: Connector = Connector('http://localhost:3001',
                            '/getChallenge', '/attemptChallenge')
 
 res: requests.Response = con.getChallenge()
@@ -85,9 +96,9 @@ res: str = json.loads(res.text)
 data: bytearray = bytearray.fromhex(res['data'])
 key: str = res['key']
 
-blockSize = 8
-cipherBlocks = splitBlocks(data, blockSize)
+blockSize: int = 8
+cipherBlocks: list = splitBlocks(data, blockSize)
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(decodeMessage(cipherBlocks,blockSize))
-loop.close()
+decryptedMessage: list = decodeMessage(cipherBlocks, blockSize)
+
+print('Decrypted Message is: {0}'.format(''.join(decryptedMessage)))

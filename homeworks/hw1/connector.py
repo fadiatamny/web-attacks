@@ -1,6 +1,6 @@
 import requests
 import json
-
+from time import sleep
 
 class Connector(object):
     def __init__(self, endpoint: str, getPath: str, postPath: str) -> None:
@@ -12,6 +12,7 @@ class Connector(object):
     def getChallenge(self) -> requests.Response:
         return requests.get(url=f'{self.__endpoint}{self.__getPath}')
 
-    async def attemptChallenge(self, data: dict) -> requests.Response:
+    def attemptChallenge(self, data: dict) -> requests.Response:
+        sleep(0.01) #to stop max retries
         headers = {'content-type': 'application/json'}
         return requests.post(url=f'{self.__endpoint}{self.__postPath}', headers=headers, data=json.dumps(data), timeout=None)

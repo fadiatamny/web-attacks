@@ -69,8 +69,7 @@ function naiveCBC_MACEncrypt(data: Buffer, key:Buffer, iv: Buffer, dec: boolean)
 
 async function enc()
 {
-    //let req = JSON.parse (await request.get('https://baconipsum.com/api/?type=all-meat&sentences=1&start-with-lorem=1'));
-    let req = ["THIS IS A SMALL TEST"]
+    let req = JSON.parse (await request.get('https://baconipsum.com/api/?type=all-meat&sentences=1&start-with-lorem=1'));
     let byteArray = Buffer.from(req[0]);
     console.log('byteArray = ', byteArray)
     let key = crypto.randomBytes(8);
@@ -117,4 +116,4 @@ function dec(data: Buffer, key: Buffer, iv: Buffer) : object
     
 }
 
-app.listen(3000, () => console.log('server running'));
+app.listen(3001, () => console.log('server running'));
