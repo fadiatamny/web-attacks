@@ -116,4 +116,4 @@ function dec(data: Buffer, key: Buffer, iv: Buffer) : object
     
 }
 
-app.listen(3001, () => console.log('server running'));
+app.listen(3000, () => console.log('server running'));

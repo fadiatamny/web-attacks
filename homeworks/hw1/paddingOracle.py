@@ -87,7 +87,7 @@ def decodeMessage(cp: list, blockSize: int) -> str:
     return decryptedMessage
 
 
-con: Connector = Connector('http://localhost:3001',
+con: Connector = Connector('http://localhost:3000',
                            '/getChallenge', '/attemptChallenge')
 
 res: requests.Response = con.getChallenge()
