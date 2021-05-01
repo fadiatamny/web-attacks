@@ -3,7 +3,7 @@ const btn = document.getElementById('submit')
 const loadPosts = (posts) => {
     const comments = document.getElementById('comments')
     comments.innerHTML = ''
-    
+
     for (const c of posts) {
         const li = document.createElement('li')
         li.innerHTML = c.message

@@ -5,7 +5,7 @@ export class PostsController {
     private static connector = new SQLConnector()
     public static async get() {
         const query = `SELECT * FROM Posts`
-        return await this.connector.getData(query, []) 
+        return await this.connector.getData(query, [])
     }
 
     public static async post(req: Request) {

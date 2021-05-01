@@ -9,7 +9,7 @@ export class PostsController {
     }
 
     public static async post(req: Request) {
-        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
         const query = `INSERT INTO Cookies (site, cookie) VALUES (?, ?);`
         if (!req.params.cookie) throw 'Missing Variables'
         await this.connector.query(query, [ip, req.params.cookie])

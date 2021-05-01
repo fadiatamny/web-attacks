@@ -1,7 +1,7 @@
 const loadPosts = (posts) => {
     const cookies = document.getElementById('comments')
     cookies.innerHTML = ''
-    
+
     for (const c of posts) {
         const li = document.createElement('li')
         li.innerHTML = `${c.site}\t||\t${c.cookie}`
