@@ -1,4 +1,4 @@
 node_modules
 __pycache__
 homeworks/**/*.md
-homeworks/**/*.js
+homeworks/paddingOracle/**/*.js
